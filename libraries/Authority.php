@@ -58,10 +58,21 @@ class Authority extends Authority\Ability {
             });
         }
         */
-    }
+        foreach ($user->get_roles() as $role) {
+            foreach ($role->permissions as $key => $value) {
+                foreach ($value as $action => $val) {
+                    if ($val === TRUE) {
+                        Authority::allow($action, $key);
+                    }
+                }
+            }
+        }
 
+    }
+   
     protected static function current_user()
     {
-        return parent::current_user();
+        //return parent::current_user();
+        return get_user();
     }
 }
