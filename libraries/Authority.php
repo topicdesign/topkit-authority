@@ -38,29 +38,36 @@ class Authority extends Authority\Ability {
         {
             foreach (json_decode($p->data, TRUE) as $resource => $actions)
             {
-                foreach ($actions as $action => $val)
+                if (is_array($actions)) 
                 {
-                    if ($val == 'own')
+                    foreach ($actions as $action => $val)
                     {
-                        Authority::allow($action, $resource,
-                            function($obj) use ($user, $resource)
-                            {
-                                foreach ($user->$resource as $r)
+                        if ($val == 'own')
+                        {
+                            Authority::allow($action, $resource,
+                                function($obj) use ($user, $resource)
                                 {
-                                    if ($r->id == $obj->id)
+                                    foreach ($user->$resource as $r)
                                     {
-                                        return TRUE;
+                                        if ($r->id == $obj->id)
+                                        {
+                                            return TRUE;
+                                        }
                                     }
+                                    return FALSE;
                                 }
-                                return FALSE;
-                            }
-                        );
+                            );
+                        }
+                        $val = (bool) $val;
+                        if ($val === TRUE)
+                        {
+                            Authority::allow($action, $resource);
+                        }
                     }
-                    $val = (bool) $val;
-                    if ($val === TRUE)
-                    {
-                        Authority::allow($action, $resource);
-                    }
+                } 
+                else 
+                {
+                    Authority::allow($actions, $resource);
                 }
             }
         }
@@ -80,7 +87,7 @@ class Authority extends Authority\Ability {
     // --------------------------------------------------------------------
 
     /**
-     * FPO: grant role to user
+     * grant role to user
      *
      * @return void
      **/
@@ -91,19 +98,87 @@ class Authority extends Authority\Ability {
             $user = static::current_user();
         }
 
-        $role = Role::first(array('conditions' => 'title < ?', $title));
+        // check if user already has this role
+        $role = \Authority\Role::first(array(
+            'conditions' => array('user_id = ?', $user->id)
+        ));
+        if ($role)
+        {
+            return FALSE;
+        }
+
+        // check to see if role/permissions exist
+        $role = \Authority\Role::first(array(
+            'conditions' => array('title = ?', $title), 
+        ));
         if ( ! $role)
         {
             // create permission from $config
+            $CI = get_instance();
+            $CI->config->load('roles');
+            $roles = config_item('roles');
+            if ( ! isset($roles[$title]))
+            {
+                return FALSE;
+            }
+
+            $permission = new \Authority\Permission();
+            $permission->data = json_encode($roles[$title]);
+            $permission->save();
+
+            $permission_id = $permission->id;
+        }
+        else
+        {
+            $permission_id = $role->permission_id;
         }
 
-        $user_role = new Role();
+        $user_role = new \Authority\Role();
+        $user_role->title = $title;
         $user_role->user_id = $user->id;
-        $user_role->permission_id = $role->permission_id;
+        $user_role->permission_id = $permission_id;
         $user_role->save();
     }
 
     // --------------------------------------------------------------------
+
+    /**
+     * remove role from a user
+     *
+     * @return void
+     **/
+    public static function remove_role($title, $user = NULL)
+    {
+        if (is_null($user))
+        {
+            $user = static::current_user();
+        }
+
+        // check if user has this role
+        $role = \Authority\Role::first(array(
+            'conditions' => array(
+                'user_id = ? AND title = ?', 
+                $user->id,
+                $title
+            )
+        ));
+        if ( ! $role)
+        {
+            return FALSE;
+        }
+
+        // if this is the only user with this role, remove permissions
+        $other_roles = \Authority\Role::first(array(
+            'conditions' => array('permission_id = ?', $role->permission_id)
+        ));
+        if ( ! $other_roles) 
+        {
+            $permission = \Authority\Permission::find($role->permission_id);
+            $permission->delete();
+        }
+
+        $role->delete();
+    }
 
 }
 /* End of file Authority.php */
