@@ -4,7 +4,7 @@ namespace Authority;
 
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Role extends \ActiveRecord\Model {
+class Permission extends \ActiveRecord\Model {
 
     # explicit table name  
     //static $table_name = '';
@@ -22,9 +22,8 @@ class Role extends \ActiveRecord\Model {
     // Associations
     // --------------------------------------------------------------------
     
-    static $belongs_to = array(
-        array('user', 'class_name' => 'User'),
-        array('permission', 'class_name' => 'Authority\Permission')
+    static $has_many = array(
+        array('roles', 'class_name' => 'Authority\Role'),
     );
 
     // --------------------------------------------------------------------
