@@ -38,29 +38,36 @@ class Authority extends Authority\Ability {
         {
             foreach (json_decode($p->data, TRUE) as $resource => $actions)
             {
-                foreach ($actions as $action => $val)
+                if (is_array($actions)) 
                 {
-                    if ($val == 'own')
+                    foreach ($actions as $action => $val)
                     {
-                        Authority::allow($action, $resource,
-                            function($obj) use ($user, $resource)
-                            {
-                                foreach ($user->$resource as $r)
+                        if ($val == 'own')
+                        {
+                            Authority::allow($action, $resource,
+                                function($obj) use ($user, $resource)
                                 {
-                                    if ($r->id == $obj->id)
+                                    foreach ($user->$resource as $r)
                                     {
-                                        return TRUE;
+                                        if ($r->id == $obj->id)
+                                        {
+                                            return TRUE;
+                                        }
                                     }
+                                    return FALSE;
                                 }
-                                return FALSE;
-                            }
-                        );
+                            );
+                        }
+                        $val = (bool) $val;
+                        if ($val === TRUE)
+                        {
+                            Authority::allow($action, $resource);
+                        }
                     }
-                    $val = (bool) $val;
-                    if ($val === TRUE)
-                    {
-                        Authority::allow($action, $resource);
-                    }
+                } 
+                else 
+                {
+                    Authority::allow($actions, $resource);
                 }
             }
         }
@@ -91,15 +98,37 @@ class Authority extends Authority\Ability {
             $user = static::current_user();
         }
 
-        $role = Role::first(array('conditions' => 'title < ?', $title));
+        $conditions = array(
+            'conditions' => array('title = ?', $title), 
+            'limit' => 1
+        );
+        $role = \Authority\Role::all($conditions);
         if ( ! $role)
         {
             // create permission from $config
+            $CI = get_instance();
+            $CI->config->load('roles');
+            $roles = config_item('roles');
+            if ( ! isset($roles[$title]))
+            {
+                return FALSE;
+            }
+
+            $permission = new \Authority\Permission();
+            $permission->data = json_encode($roles[$title]);
+            $permission->save();
+
+            $permission_id = $permission->id;
+        }
+        else
+        {
+            $permission_id = $role[0]->permission_id;
         }
 
-        $user_role = new Role();
+        $user_role = new \Authority\Role();
+        $user_role->title = $title;
         $user_role->user_id = $user->id;
-        $user_role->permission_id = $role->permission_id;
+        $user_role->permission_id = $permission_id;
         $user_role->save();
     }
 
