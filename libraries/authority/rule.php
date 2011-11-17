@@ -32,6 +32,19 @@ class Rule {
     protected $_action      = null;
     protected $_callback    = null;
 
+    // --------------------------------------------------------------------
+
+    /**
+     * Constructor
+     *
+     * @access  public
+     * @param   bool        $allowed
+     * @param   string      $action
+     * @param   string      $resource
+     * @param   closure     $callback
+     *
+     * @return  void
+     **/
     public function __construct($allowed, $action, $resource, \Closure $callback = null)
     {
         $this->_allowed     = $allowed;
@@ -40,28 +53,79 @@ class Rule {
         $this->_callback    = $callback;
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * allowed
+     *
+     * @access  public
+     * @param   void
+     *
+     * @return  bool
+     **/
     public function allowed()
     {
         return $this->_allowed;
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * matches_action
+     *
+     * @access  public
+     * @param   string  $action
+     *
+     * @return  bool
+     **/
     public function matches_action($action)
     {
         return is_array($action)    ? in_array($this->_action, $action) 
                                     : $this->_action === $action;
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * matches_resource
+     *
+     * @access  pubic
+     * @param   string  $resource
+     *
+     * @return  bool
+     **/
     public function matches_resource($resource)
     {
         $resource = is_object($resource) ? get_class($resource) : $resource;
         return $this->_resource === $resource || $this->_resource === 'all';
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * relevant
+     *
+     * @access  public
+     * @param   string  $action
+     * @param   string  $resource
+     *
+     * @return  bool
+     **/
     public function relevant($action, $resource)
     {
         return $this->matches_action($action) && $this->matches_resource($resource);
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * callback
+     *
+     * @access  public
+     * @param   object  $resource
+     *
+     * @return  bool
+     **/
     public function callback($resource)
     {
         if (isset($this->_callback) && is_string($resource)) {
@@ -70,11 +134,24 @@ class Rule {
         return (isset($this->_callback)) ? $this->_callback($resource) : true;
     }
 
-    // Allow callbacks to be called
+    // --------------------------------------------------------------------
+
+    /**
+     * Allow callbacks to be called
+     *
+     * @access  public
+     * @param   string  $method
+     * @param   mixed   $args
+     *
+     * @return  bool
+     **/
     public function __call($method, $args)
     {
         return (isset($this->$method)) ? call_user_func_array($this->$method, $args) : true;
     }
 
+    // --------------------------------------------------------------------
+
 }
- 
+/* End of file rule.php */
+/* Location: ./libraries/authority/rule.php */

@@ -25,6 +25,44 @@ abstract class Ability {
     protected static $_rules = array();
     protected static $_action_aliases = array();
 
+    // --------------------------------------------------------------------
+
+    /**
+     * Contstructor
+     *
+     * @access  public
+     * @param   void
+     *
+     * @return void
+     **/
+    public function __construct()
+    {
+        static::initialize(static::current_user());
+    }
+
+    // --------------------------------------------------------------------
+
+    /**
+     * Get current User
+     * implement for your application in the Authority library
+     *
+     * @return  object
+     **/
+    protected static function current_user()
+    {
+        return FALSE;
+    }
+
+    // --------------------------------------------------------------------
+
+    /**
+     * initialize
+     *
+     * @access  public
+     * @param   object  $user
+     *
+     * @return  void
+     **/
     public static function initialize($user)
     {
         static::action_alias('manage', array('create', 'read', 'update', 'delete'));
@@ -38,9 +76,22 @@ abstract class Ability {
         }
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * Can
+     *
+     * @access  public
+     * @param   string  $action
+     * @param   mixed   $resource   string||object
+     * @param   ?       $resource_val
+     *
+     * @return  bool
+     **/
     public static function can($action, $resource, $resource_val = null)
     {
-        if ( empty(static::$_rules)) {
+        if (empty(static::$_rules))
+        {
             static::initialize(static::current_user());
         }
 
@@ -56,7 +107,7 @@ abstract class Ability {
 
             foreach ($matches as $matched_rule)
             {
-                $results[] = !($matched_rule->callback($resource_value) xor $matched_rule->allowed());
+                $results[] = ! ($matched_rule->callback($resource_value) XOR $matched_rule->allowed());
             }
 
             // Last rule overrides others
@@ -68,31 +119,81 @@ abstract class Ability {
         }
     }
 
-    public static function cannot($action, $resource, $resource_val = null)
-    {
-        static::can($action, $resource, $resource_val);
-    }
+    // --------------------------------------------------------------------
 
+    /**
+     * allow
+     *
+     * @access  public
+     * @param   string      $action
+     * @param   string      $action
+     * @param   closure     $callback
+     *
+     * @return void
+     **/
     public static function allow($action, $resource, \Closure $callback = null)
     {
         static::$_rules[] = new Rule(true, $action, $resource, $callback);
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * deny
+     *
+     * @access  public
+     * @param   string      $action
+     * @param   string      $action
+     * @param   closure     $callback
+     *
+     * @return void
+     **/
     public static function deny($action, $resource, \Closure $callback = null)
     {
         static::$_rules[] = new Rule(false, $action, $resource, $callback);
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * action_alias
+     *
+     * @access  public
+     * @param   string  $action
+     * @param   array
+     *
+     * @return  void
+     **/
     public static function action_alias($action, Array $aliases)
     {
         static::$_action_aliases[$action] = $aliases;
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * dealias
+     *
+     * @access  public
+     * @param   string  $action
+     *
+     * @return  void
+     **/
     public static function dealias($action)
     {
         return static::$_action_aliases[$action] ?: $action; 
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * determine_action
+     *
+     * @access  protected
+     * @param   string      $action
+     *
+     * @return  void
+     **/
     protected static function determine_action($action)
     {
         $actions = array();
@@ -118,6 +219,17 @@ abstract class Ability {
         }
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+     * find_matches
+     *
+     * @access  protected
+     * @param   string      $action
+     * @param   mixed       $resource   string || object?
+     *
+     * @return  void
+     **/
     protected static function find_matches($action, $resource)
     {
         $matches = array();
@@ -134,17 +246,8 @@ abstract class Ability {
         return $matches;
     }
 
-    public function __construct()
-    {
-        static::initialize(static::current_user());
-    }
+    // --------------------------------------------------------------------
 
-    protected static function current_user()
-    {
-        $ci = get_instance();
-        if (isset($ci->authentic)) {
-            // using authentic library
-            return $ci->authentic->current_user() ?: new \User;
-        }
-    }
 }
+/* End of file ability.php */
+/* Location: ./libraries/authority/ability.php */
