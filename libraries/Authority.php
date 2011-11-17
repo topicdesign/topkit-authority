@@ -99,12 +99,12 @@ class Authority extends Authority\Ability {
         }
 
         // check if user already has this role
-        $role = \Authority\Role::first(array(
-            'conditions' => array('user_id = ?', $user->id)
-        ));
-        if ($role)
+        foreach ($user->roles as $role) 
         {
-            return FALSE;
+            if ($role->title == $title) 
+            {
+                return FALSE;
+            }
         }
 
         // check to see if role/permissions exist
@@ -155,26 +155,33 @@ class Authority extends Authority\Ability {
         }
 
         // check if user has this role
-        $role = \Authority\Role::first(array(
-            'conditions' => array(
-                'user_id = ? AND title = ?', 
-                $user->id,
-                $title
-            )
-        ));
-        if ( ! $role)
+        $role = NULL;
+        $has_role = FALSE;
+        foreach ($user->roles as $r) 
         {
-            return FALSE;
+            if ($r->title == $title) 
+            {
+                $has_role = TRUE;
+                $role = $r;
+                break;
+            }
+        }
+        if ( ! $has_role)
+        {
+            return $has_role;
         }
 
         // if this is the only user with this role, remove permissions
         $other_roles = \Authority\Role::first(array(
-            'conditions' => array('permission_id = ?', $role->permission_id)
+            'conditions' => array(
+                'permission_id = ? AND id != ?', 
+                $role->permission_id,
+                $role->id
+            )
         ));
         if ( ! $other_roles) 
         {
-            $permission = \Authority\Permission::find($role->permission_id);
-            $permission->delete();
+            $role->permission->delete();
         }
 
         $role->delete();
