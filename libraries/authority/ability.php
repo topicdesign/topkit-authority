@@ -68,7 +68,7 @@ abstract class Ability {
         static::action_alias('manage', array('create', 'read', 'update', 'delete'));
         static::action_alias('moderate', array('update', 'delete'));
 
-        if ( ! $user || ! $user->role) return false;
+        if ( ! $user || ! $user->role) return FALSE;
 
         if ($user->role == 'admin')
         {
@@ -88,35 +88,31 @@ abstract class Ability {
      *
      * @return  bool
      **/
-    public static function can($action, $resource, $resource_val = null)
+    public static function can($action, $resource, $resource_val = NULL)
     {
         if (empty(static::$_rules))
         {
             static::initialize(static::current_user());
         }
 
-        // See if the action has been aliased to somethign else
+        // See if the action has been aliased to something else
         $true_action = static::determine_action($action);
 
         $matches = static::find_matches($true_action, $resource);
 
         if ($matches && ! empty($matches))
         {
-            $results = array();
             $resource_value = ($resource_val) ?: $resource;
 
             foreach ($matches as $matched_rule)
             {
-                $results[] = ! ($matched_rule->callback($resource_value) XOR $matched_rule->allowed());
+                if ( ! ($matched_rule->callback($resource_value) XOR $matched_rule->allowed())) 
+                {
+                    return TRUE;
+                }
             }
-
-            // Last rule overrides others
-            return $results[count($results)-1];
         }
-        else
-        {
-            return false;
-        }
+        return FALSE;
     }
 
     // --------------------------------------------------------------------
@@ -131,9 +127,9 @@ abstract class Ability {
      *
      * @return void
      **/
-    public static function allow($action, $resource, \Closure $callback = null)
+    public static function allow($action, $resource, \Closure $callback = NULL)
     {
-        static::$_rules[] = new Rule(true, $action, $resource, $callback);
+        static::$_rules[] = new Rule(TRUE, $action, $resource, $callback);
     }
 
     // --------------------------------------------------------------------
@@ -148,9 +144,9 @@ abstract class Ability {
      *
      * @return void
      **/
-    public static function deny($action, $resource, \Closure $callback = null)
+    public static function deny($action, $resource, \Closure $callback = NULL)
     {
-        static::$_rules[] = new Rule(false, $action, $resource, $callback);
+        static::$_rules[] = new Rule(FALSE, $action, $resource, $callback);
     }
 
     // --------------------------------------------------------------------
