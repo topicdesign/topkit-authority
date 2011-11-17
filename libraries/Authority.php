@@ -87,7 +87,7 @@ class Authority extends Authority\Ability {
     // --------------------------------------------------------------------
 
     /**
-     * FPO: grant role to user
+     * grant role to user
      *
      * @return void
      **/
@@ -98,11 +98,19 @@ class Authority extends Authority\Ability {
             $user = static::current_user();
         }
 
-        $conditions = array(
+        // check if user already has this role
+        $role = \Authority\Role::first(array(
+            'conditions' => array('user_id = ?', $user->id)
+        ));
+        if ($role)
+        {
+            return FALSE;
+        }
+
+        // check to see if role/permissions exist
+        $role = \Authority\Role::first(array(
             'conditions' => array('title = ?', $title), 
-            'limit' => 1
-        );
-        $role = \Authority\Role::all($conditions);
+        ));
         if ( ! $role)
         {
             // create permission from $config
@@ -122,7 +130,7 @@ class Authority extends Authority\Ability {
         }
         else
         {
-            $permission_id = $role[0]->permission_id;
+            $permission_id = $role->permission_id;
         }
 
         $user_role = new \Authority\Role();
@@ -133,6 +141,44 @@ class Authority extends Authority\Ability {
     }
 
     // --------------------------------------------------------------------
+
+    /**
+     * remove role from a user
+     *
+     * @return void
+     **/
+    public static function remove_role($title, $user = NULL)
+    {
+        if (is_null($user))
+        {
+            $user = static::current_user();
+        }
+
+        // check if user has this role
+        $role = \Authority\Role::first(array(
+            'conditions' => array(
+                'user_id = ? AND title = ?', 
+                $user->id,
+                $title
+            )
+        ));
+        if ( ! $role)
+        {
+            return FALSE;
+        }
+
+        // if this is the only user with this role, remove permissions
+        $other_roles = \Authority\Role::first(array(
+            'conditions' => array('permission_id = ?', $role->permission_id)
+        ));
+        if ( ! $other_roles) 
+        {
+            $permission = \Authority\Permission::find($role->permission_id);
+            $permission->delete();
+        }
+
+        $role->delete();
+    }
 
 }
 /* End of file Authority.php */
