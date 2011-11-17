@@ -24,15 +24,24 @@ require 'authority/rule.php';
 
 class Authority extends Authority\Ability {
 
-    public static function initialize($user)
+    /**
+     * Constructor
+     *
+     * @access  public
+     * @param   void
+     *
+     * @return  void
+     **/
+    public function __construct()
     {
+        $user = static::current_user();
         if ( ! $user || ! $user->permissions)
         {
             return FALSE;
         }
 
         Authority::action_alias('manage', array('create', 'read', 'update', 'delete'));
-        Authority::action_alias('moderate', array('update', 'delete', 'edit'));
+        Authority::action_alias('moderate', array('read', 'update', 'delete'));
 
         foreach ($user->permissions as $p)
         {
@@ -75,6 +84,14 @@ class Authority extends Authority\Ability {
 
     // --------------------------------------------------------------------
 
+    /**
+     * get current user
+     *
+     * @access  public
+     * @param   void
+     *
+     * @return  object
+     **/
     protected static function current_user()
     {
         if ( ! function_exists('get_user'))
@@ -89,7 +106,11 @@ class Authority extends Authority\Ability {
     /**
      * grant role to user
      *
-     * @return void
+     * @access  public
+     * @param   string  $title  roles.title
+     * @param   object  $user   user to act on
+     *
+     * @return  void
      **/
     public static function grant_role($title, $user = NULL)
     {
@@ -145,7 +166,11 @@ class Authority extends Authority\Ability {
     /**
      * remove role from a user
      *
-     * @return void
+     * @access  public
+     * @param   string  $title  roles.title
+     * @param   object  $user   user to act on
+     *
+     * @return  void
      **/
     public static function remove_role($title, $user = NULL)
     {
@@ -186,6 +211,8 @@ class Authority extends Authority\Ability {
 
         $role->delete();
     }
+
+    // --------------------------------------------------------------------
 
 }
 /* End of file Authority.php */

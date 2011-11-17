@@ -28,21 +28,6 @@ abstract class Ability {
     // --------------------------------------------------------------------
 
     /**
-     * Contstructor
-     *
-     * @access  public
-     * @param   void
-     *
-     * @return void
-     **/
-    public function __construct()
-    {
-        static::initialize(static::current_user());
-    }
-
-    // --------------------------------------------------------------------
-
-    /**
      * Get current User
      * implement for your application in the Authority library
      *
@@ -51,29 +36,6 @@ abstract class Ability {
     protected static function current_user()
     {
         return FALSE;
-    }
-
-    // --------------------------------------------------------------------
-
-    /**
-     * initialize
-     *
-     * @access  public
-     * @param   object  $user
-     *
-     * @return  void
-     **/
-    public static function initialize($user)
-    {
-        static::action_alias('manage', array('create', 'read', 'update', 'delete'));
-        static::action_alias('moderate', array('update', 'delete'));
-
-        if ( ! $user || ! $user->role) return FALSE;
-
-        if ($user->role == 'admin')
-        {
-            static::allow('manage', 'all');
-        }
     }
 
     // --------------------------------------------------------------------
