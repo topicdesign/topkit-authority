@@ -4,6 +4,17 @@ namespace Authority;
 
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
+/**
+ * Role
+ *
+ * @package     Authority
+ * @subpackage  Models
+ * @category    Authentication
+ * @author      Topic Deisgn
+ * @link        https://github.com/topicdesign/codeigniter-authority-authorization
+ * @license     http://creativecommons.org/licenses/BSD/
+ */
+
 class Role extends \ActiveRecord\Model {
 
     # explicit table name  
@@ -38,5 +49,18 @@ class Role extends \ActiveRecord\Model {
     // --------------------------------------------------------------------
 }
 
-/* End of file model.sample.php */
-/* Location: ./application/models/model.sample.php */
+/**
+ * SQL for table
+
+CREATE TABLE `roles` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(40) DEFAULT NULL,
+  `user_id` int(11) unsigned NOT NULL,
+  `permission_id` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+**/
+/* End of file Role.php */
+/* Location: ./models/Role.php */
