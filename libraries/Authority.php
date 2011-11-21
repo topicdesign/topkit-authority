@@ -34,14 +34,14 @@ class Authority extends Authority\Ability {
      **/
     public function __construct()
     {
-        $user = static::current_user();
+        $user = $this->current_user();
         if ( ! $user || ! $user->permissions)
         {
             return FALSE;
         }
 
-        Authority::action_alias('manage', array('create', 'read', 'update', 'delete'));
-        Authority::action_alias('moderate', array('read', 'update', 'delete'));
+        $this->action_alias('manage', array('create', 'read', 'update', 'delete'));
+        $this->action_alias('moderate', array('read', 'update', 'delete'));
 
         foreach ($user->permissions as $p)
         {
@@ -53,7 +53,7 @@ class Authority extends Authority\Ability {
                     {
                         if ($val == 'own')
                         {
-                            Authority::allow($action, $resource,
+                            $this->allow($action, $resource,
                                 function($obj) use ($user, $resource)
                                 {
                                     foreach ($user->$resource as $r)
@@ -70,13 +70,13 @@ class Authority extends Authority\Ability {
                         $val = (bool) $val;
                         if ($val === TRUE)
                         {
-                            Authority::allow($action, $resource);
+                            $this->allow($action, $resource);
                         }
                     }
                 } 
                 else 
                 {
-                    Authority::allow($actions, $resource);
+                    $this->allow($actions, $resource);
                 }
             }
         }
@@ -92,7 +92,7 @@ class Authority extends Authority\Ability {
      *
      * @return  object
      **/
-    protected static function current_user()
+    protected function current_user()
     {
         if ( ! function_exists('get_user'))
         {
@@ -112,11 +112,15 @@ class Authority extends Authority\Ability {
      *
      * @return  void
      **/
-    public static function grant_role($title, $user = NULL)
+    public function grant_role($title, $user = NULL)
     {
         if (is_null($user))
         {
-            $user = static::current_user();
+            $user = $this->current_user();
+        }
+        if ( ! $user)
+        {
+            return FALSE;
         }
 
         // check if user already has this role
@@ -172,11 +176,15 @@ class Authority extends Authority\Ability {
      *
      * @return  void
      **/
-    public static function remove_role($title, $user = NULL)
+    public function remove_role($title, $user = NULL)
     {
         if (is_null($user))
         {
-            $user = static::current_user();
+            $user = $this->current_user();
+        }
+        if ( ! $user)
+        {
+            return FALSE;
         }
 
         // check if user has this role

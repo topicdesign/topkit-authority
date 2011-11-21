@@ -22,8 +22,8 @@ if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 abstract class Ability {
 
-    protected static $_rules = array();
-    protected static $_action_aliases = array();
+    protected $_rules = array();
+    protected $_action_aliases = array();
 
     // --------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ abstract class Ability {
      *
      * @return  object
      **/
-    protected static function current_user()
+    protected function current_user()
     {
         return FALSE;
     }
@@ -50,17 +50,17 @@ abstract class Ability {
      *
      * @return  bool
      **/
-    public static function can($action, $resource, $resource_val = NULL)
+    public function can($action, $resource, $resource_val = NULL)
     {
-        if (empty(static::$_rules))
+        if (empty($this->_rules))
         {
-            static::initialize(static::current_user());
+            return FALSE;
         }
 
         // See if the action has been aliased to something else
-        $true_action = static::determine_action($action);
+        $true_action = $this->determine_action($action);
 
-        $matches = static::find_matches($true_action, $resource);
+        $matches = $this->find_matches($true_action, $resource);
 
         if ($matches && ! empty($matches))
         {
@@ -89,9 +89,9 @@ abstract class Ability {
      *
      * @return void
      **/
-    public static function allow($action, $resource, \Closure $callback = NULL)
+    public function allow($action, $resource, \Closure $callback = NULL)
     {
-        static::$_rules[] = new Rule(TRUE, $action, $resource, $callback);
+        $this->_rules[] = new Rule(TRUE, $action, $resource, $callback);
     }
 
     // --------------------------------------------------------------------
@@ -106,9 +106,9 @@ abstract class Ability {
      *
      * @return void
      **/
-    public static function deny($action, $resource, \Closure $callback = NULL)
+    public function deny($action, $resource, \Closure $callback = NULL)
     {
-        static::$_rules[] = new Rule(FALSE, $action, $resource, $callback);
+        $this->_rules[] = new Rule(FALSE, $action, $resource, $callback);
     }
 
     // --------------------------------------------------------------------
@@ -122,9 +122,9 @@ abstract class Ability {
      *
      * @return  void
      **/
-    public static function action_alias($action, Array $aliases)
+    public function action_alias($action, Array $aliases)
     {
-        static::$_action_aliases[$action] = $aliases;
+        $this->_action_aliases[$action] = $aliases;
     }
 
     // --------------------------------------------------------------------
@@ -137,9 +137,9 @@ abstract class Ability {
      *
      * @return  void
      **/
-    public static function dealias($action)
+    public function dealias($action)
     {
-        return static::$_action_aliases[$action] ?: $action; 
+        return $this->_action_aliases[$action] ?: $action; 
     }
 
     // --------------------------------------------------------------------
@@ -152,12 +152,12 @@ abstract class Ability {
      *
      * @return  void
      **/
-    protected static function determine_action($action)
+    protected function determine_action($action)
     {
         $actions = array();
-        if ( ! empty(static::$_action_aliases))
+        if ( ! empty($this->_action_aliases))
         {
-            foreach (static::$_action_aliases as $aliased_action => $aliases)
+            foreach ($this->_action_aliases as $aliased_action => $aliases)
             {
                 if ( ! empty($aliases) && in_array($action, $aliases))
                 {
@@ -188,12 +188,12 @@ abstract class Ability {
      *
      * @return  void
      **/
-    protected static function find_matches($action, $resource)
+    protected function find_matches($action, $resource)
     {
         $matches = array();
-        if (!empty(static::$_rules))
+        if (!empty($this->_rules))
         {
-            foreach(static::$_rules as $rule)
+            foreach($this->_rules as $rule)
             {
                 if ($rule->relevant($action, $resource))
                 {
