@@ -51,7 +51,7 @@ class Authority extends Authority\Ability {
                 {
                     foreach ($actions as $action => $val)
                     {
-                        if ($val == 'own')
+                        if ($val === 'own')
                         {
                             $this->allow($action, $resource,
                                 function($obj) use ($user, $resource)
