@@ -9,7 +9,7 @@
  * Please check out his work at http://github.com/ryanb/cancan/
  *
  * @package     Authority
- * @version     0.0.3
+ * @version     0.0.4
  * @author      Matthew Machuga
  * @license     MIT License
  * @copyright   2011 Matthew Machuga
@@ -51,7 +51,7 @@ class Authority extends Authority\Ability {
                 {
                     foreach ($actions as $action => $val)
                     {
-                        if ($val == 'own')
+                        if ($val === 'own')
                         {
                             $this->allow($action, $resource,
                                 function($obj) use ($user, $resource)
