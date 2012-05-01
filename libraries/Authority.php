@@ -40,14 +40,14 @@ class Authority extends Authority\Ability {
             return FALSE;
         }
 
-        $this->action_alias('manage', array('create', 'read', 'update', 'delete'));
-        $this->action_alias('moderate', array('read', 'update', 'delete'));
+        $this->action_alias('admin', array('create', 'read', 'update', 'delete'));
+        $this->action_alias('manage', array('create', 'read', 'update'));
 
         foreach ($user->permissions as $p)
         {
             foreach (json_decode($p->data, TRUE) as $resource => $actions)
             {
-                if (is_array($actions)) 
+                if (is_array($actions))
                 {
                     foreach ($actions as $action => $val)
                     {
@@ -73,8 +73,8 @@ class Authority extends Authority\Ability {
                             $this->allow($action, $resource);
                         }
                     }
-                } 
-                else 
+                }
+                else
                 {
                     $this->allow($actions, $resource);
                 }
@@ -124,17 +124,20 @@ class Authority extends Authority\Ability {
         }
 
         // check if user already has this role
-        foreach ($user->roles as $role) 
+        if ( ! empty($user->roles))
         {
-            if ($role->title == $title) 
+            foreach ($user->roles as $role)
             {
-                return FALSE;
+                if ($role->title == $title)
+                {
+                    return FALSE;
+                }
             }
         }
 
         // check to see if role/permissions exist
         $role = \Authority\Role::first(array(
-            'conditions' => array('title = ?', $title), 
+            'conditions' => array('title = ?', $title),
         ));
         if ( ! $role)
         {
@@ -190,9 +193,9 @@ class Authority extends Authority\Ability {
         // check if user has this role
         $role = NULL;
         $has_role = FALSE;
-        foreach ($user->roles as $r) 
+        foreach ($user->roles as $r)
         {
-            if ($r->title == $title) 
+            if ($r->title == $title)
             {
                 $has_role = TRUE;
                 $role = $r;
@@ -207,12 +210,12 @@ class Authority extends Authority\Ability {
         // if this is the only user with this role, remove permissions
         $other_roles = \Authority\Role::first(array(
             'conditions' => array(
-                'permission_id = ? AND id != ?', 
+                'permission_id = ? AND id != ?',
                 $role->permission_id,
                 $role->id
             )
         ));
-        if ( ! $other_roles) 
+        if ( ! $other_roles)
         {
             $role->permission->delete();
         }
