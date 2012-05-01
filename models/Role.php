@@ -42,6 +42,13 @@ class Role extends \ActiveRecord\Model {
     // Validations
     // --------------------------------------------------------------------
     
+    static $valdiates_presence_of = array(
+        array('title')
+    );
+
+    static $validates_length_of = array(
+        array('title', 'maximum' => 40)
+    );
     // --------------------------------------------------------------------
     // Public Methods
     // --------------------------------------------------------------------
