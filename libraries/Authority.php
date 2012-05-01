@@ -9,7 +9,7 @@
  * Please check out his work at http://github.com/ryanb/cancan/
  *
  * @package     Authority
- * @version     0.0.4
+ * @version     0.0.5
  * @author      Matthew Machuga
  * @license     MIT License
  * @copyright   2011 Matthew Machuga
