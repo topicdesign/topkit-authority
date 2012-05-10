@@ -96,7 +96,7 @@ class Rule {
      **/
     public function matches_resource($resource)
     {
-        $resource = is_object($resource) ? get_class($resource) : $resource;
+        $resource = is_object($resource) ? strtolower(get_class($resource)) : $resource;
         return $this->_resource === $resource || $this->_resource === 'all';
     }
 
